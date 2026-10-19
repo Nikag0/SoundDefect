@@ -1,0 +1,48 @@
+﻿using SoundDeffect.Domain;
+using System.Globalization;
+using System.IO;
+
+namespace SoundDeffect.Service
+{
+    public class FileReader
+    {
+        public async Task<Dataset> ParseFileAsync(string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"Файл не найден: {filePath}");
+
+            var dataset = new Dataset();
+
+            using var reader = new StreamReader(filePath);
+            while (await reader.ReadLineAsync() is string line)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var parts = line.Split(new[] { ' ', '\t', ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Сценарий 1: В файле только две колонки (X и Y)
+                if (parts.Length == 2)
+                {
+                    if (double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
+                        double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double y))
+                    {
+                        // Записываем в канал 0 (дефолтный канал для простых файлов)
+                        dataset.AddPoint(channelId: 0, x, y);
+                    }
+                }
+                // Сценарий 2: В файле три колонки (ChannelId, X, Y)
+                else if (parts.Length >= 3)
+                {
+                    if (int.TryParse(parts[0], out int channelId) &&
+                        double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out double x) &&
+                        double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out double y))
+                    {
+                        dataset.AddPoint(channelId, x, y);
+                    }
+                }
+            }
+
+            return dataset;
+        }
+    }
+}
