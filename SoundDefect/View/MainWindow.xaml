@@ -1,0 +1,84 @@
+﻿<Window x:Class="SoundDeffect.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+        xmlns:local="clr-namespace:SoundDeffect"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#F3F3F3">
+            <Button Content="📁 Добавить график" 
+            Command="{Binding LoadFileCommand}" 
+            Padding="12,6" 
+            FontSize="14" 
+            Cursor="Hand"
+            FontWeight="SemiBold"/>
+
+            <Button Content="Очистить графики" 
+            Command="{Binding ClearCommand}" 
+            Padding="12,6" 
+            FontSize="14" 
+            Cursor="Hand"
+            FontWeight="SemiBold"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70" MinWidth="70"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Padding="10">
+                <DockPanel>
+                    <TextBlock Text="Каналы:" DockPanel.Dock="Top" FontWeight="Bold" Margin="0,0,0,10" FontSize="13"/>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ChannelToggles}" VirtualizingStackPanel.IsVirtualizing="True" >
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4" VerticalAlignment="Center">
+
+                                        <!-- Цветной маркер канала-->
+                                        <Border Width="12" Height="12" 
+                                            CornerRadius="3" 
+                                            Margin="0,0,8,0" 
+                                            VerticalAlignment="Center"
+                                            Background="{Binding ChannelBrush}" 
+                                            BorderBrush="#CCCCCC" 
+                                            BorderThickness="0.5"/>
+
+                                        <!-- Чекбокс, привязанный к состоянию видимости -->
+                                        <CheckBox IsChecked="{Binding IsVisible}" 
+                                            Content="{Binding Name}" 
+                                            FontSize="13" 
+                                            Cursor="Hand"
+                                            VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#E0E0E0"/>
+
+            <ScottPlot:WpfPlot Name="MainPlot" Grid.Column="2" Margin="5"/>
+        </Grid>
+
+        <StatusBar Grid.Row="4" Background="#EAEAEA">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#333333"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
