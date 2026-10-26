@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SoundDeffect")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+88c2a2ef166eb2b46667ce058d99ebad7206fed5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+72f47c53dcbd15717f451886cb9fe0666e84d23d")]
 [assembly: System.Reflection.AssemblyProductAttribute("SoundDeffect")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SoundDeffect")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

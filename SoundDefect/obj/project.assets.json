@@ -1198,11 +1198,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\SoundDefect\\SoundDeffect\\SoundDeffect.csproj",
-      "projectName": "SoundDeffect",
-      "projectPath": "D:\\SoundDefect\\SoundDeffect\\SoundDeffect.csproj",
+      "projectUniqueName": "D:\\SoundDefect\\SoundDefect\\SoundDefect.csproj",
+      "projectName": "SoundDefect",
+      "projectPath": "D:\\SoundDefect\\SoundDefect\\SoundDefect.csproj",
       "packagesPath": "C:\\Users\\Пользователь\\.nuget\\packages\\",
-      "outputPath": "D:\\SoundDefect\\SoundDeffect\\obj\\",
+      "outputPath": "D:\\SoundDefect\\SoundDefect\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

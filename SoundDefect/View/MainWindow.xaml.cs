@@ -1,5 +1,4 @@
-﻿using SoundDeffect.Domain;
-using SoundDeffect.ViewModel;
+﻿using SoundDeffect.ViewModel;
 using System.Windows;
 using System.Windows.Media;
 
@@ -19,78 +18,78 @@ namespace SoundDeffect.View
 
             _viewModel = viewModel;
             this.DataContext = _viewModel;
-            _viewModel.DatasetLoaded += OnDatasetLoaded;
-            _viewModel.ChartsCleared += OnChartsCleared;
-            _viewModel.RequestPlotUpdate += OnRequestPlotUpdate;
+            //_viewModel.DatasetLoaded += OnDatasetLoaded;
+            //_viewModel.ChartsCleared += OnChartsCleared;
+            //_viewModel.RequestPlotUpdate += OnRequestPlotUpdate;
         }
 
-        private void OnDatasetLoaded(Dataset dataset)
-        {
-            MainPlot.Plot.Clear();
+        //private void OnDatasetLoaded(Dataset dataset)
+        //{
+        //    MainPlot.Plot.Clear();
 
-            int chartCounter = 0;
+        //    int chartCounter = 0;
 
-            foreach (var channelKeyValuePair in dataset.Channels)
-            {
-                int channelId = channelKeyValuePair.Key;
-                var channelData = channelKeyValuePair.Value;
+        //    foreach (var channelKeyValuePair in dataset.Channels)
+        //    {
+        //        int channelId = channelKeyValuePair.Key;
+        //        var channelData = channelKeyValuePair.Value;
 
-                if (channelData.XValues.Count == 0) continue;
+        //        if (channelData.XValues.Count == 0) continue;
 
-                double[] xs = channelData.XValues.ToArray();
-                double[] ys = channelData.YValues.ToArray();
+        //        double[] xs = channelData.XValues.ToArray();
+        //        double[] ys = channelData.YValues.ToArray();
 
-                    var scatter = MainPlot.Plot.Add.SignalXY(xs, ys);
-                    scatter.Label = $"Канал {channelId}";
+        //            var scatter = MainPlot.Plot.Add.SignalXY(xs, ys);
+        //            scatter.Label = $"Канал {channelId}";
 
-                chartCounter++;
-            }
+        //        chartCounter++;
+        //    }
 
-            MainPlot.Plot.Axes.AutoScale();
+        //    MainPlot.Plot.Axes.AutoScale();
 
-            MainPlot.Plot.ShowLegend();
+        //    MainPlot.Plot.ShowLegend();
 
-            MainPlot.Refresh();
-        }
+        //    MainPlot.Refresh();
+        //}
 
-        private void OnChartsCleared()
-        {
-            MainPlot.Plot.Clear();
+        //private void OnChartsCleared()
+        //{
+        //    MainPlot.Plot.Clear();
 
-            MainPlot.Plot.Axes.SetLimits(0, 10, 0, 10);
+        //    MainPlot.Plot.Axes.SetLimits(0, 10, 0, 10);
 
-            MainPlot.Refresh();
-        }
+        //    MainPlot.Refresh();
+        //}
 
-        private void OnRequestPlotUpdate(Dataset dataset, int[] activeChannelIds)
-        {
-            MainPlot.Plot.Clear();
+        //private void OnRequestPlotUpdate(Dataset dataset, int[] activeChannelIds)
+        //{
+        //    MainPlot.Plot.Clear();
 
-            foreach (int channelId in activeChannelIds)
-            {
-                if (dataset.Channels.TryGetValue(channelId, out var channelData))
-                {
-                    if (channelData.XValues.Count == 0) continue;
+        //    foreach (int channelId in activeChannelIds)
+        //    {
+        //        if (dataset.Channels.TryGetValue(channelId, out var channelData))
+        //        {
+        //            if (channelData.XValues.Count == 0) continue;
 
-                    var toggleVm = _viewModel.ChannelToggles.FirstOrDefault(t => t.ChannelId == channelId);
+        //            var toggleVm = _viewModel.ChannelToggles.FirstOrDefault(t => t.ChannelId == channelId);
 
-                    var scatter = MainPlot.Plot.Add.SignalXY(
-                        channelData.XValues.ToArray(),
-                        channelData.YValues.ToArray()
-                    );
-                    scatter.Label = $"Канал {channelId}";
+        //            var scatter = MainPlot.Plot.Add.SignalXY(
+        //                channelData.XValues.ToArray(),
+        //                channelData.YValues.ToArray()
+        //            );
+        //            scatter.Label = $"Канал {channelId}";
 
-                    if (toggleVm?.ChannelBrush is SolidColorBrush wpfBrush)
-                    {
-                        var wpfColor = wpfBrush.Color;
-                        scatter.Color = new ScottPlot.Color(wpfColor.R, wpfColor.G, wpfColor.B);
-                    }
-                }
-            }
+        //            if (toggleVm?.ChannelBrush is SolidColorBrush wpfBrush)
+        //            {
+        //                var wpfColor = wpfBrush.Color;
+        //                scatter.Color = new ScottPlot.Color(wpfColor.R, wpfColor.G, wpfColor.B);
+        //            }
+        //        }
+        //    }
 
-            MainPlot.Plot.Axes.AutoScale();
-            MainPlot.Plot.ShowLegend();
-            MainPlot.Refresh();
-        }
+        //    MainPlot.Plot.Axes.AutoScale();
+        //    MainPlot.Plot.ShowLegend();
+        //    MainPlot.Refresh();
+        //}
     }
 }

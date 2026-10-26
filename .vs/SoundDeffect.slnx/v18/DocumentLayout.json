@@ -1,0 +1,155 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SoundDefect\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\service\\filereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\service\\filereader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\view\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\view\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\domain\\graphic.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\domain\\graphic.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\viewmodel\\channeltoggleviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\viewmodel\\channeltoggleviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\viewmodel\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\viewmodel\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\service\\graphicnormalizationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\service\\graphicnormalizationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\service\\iinternalgraphicparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\service\\iinternalgraphicparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|d:\\sounddefect\\sounddefect\\view\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{1E0FCB0A-7E96-233B-6187-49C12033A987}|SoundDefect\\SoundDefect.csproj|solutionrelative:sounddefect\\view\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "IInternalGraphicParser.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\Service\\IInternalGraphicParser.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\Service\\IInternalGraphicParser.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\Service\\IInternalGraphicParser.cs",
+              "RelativeToolTip": "SoundDefect\\Service\\IInternalGraphicParser.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T14:01:29.035Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GraphicNormalizationService.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\Service\\GraphicNormalizationService.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\Service\\GraphicNormalizationService.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\Service\\GraphicNormalizationService.cs",
+              "RelativeToolTip": "SoundDefect\\Service\\GraphicNormalizationService.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAQwA8AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T13:47:47.588Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Graphic.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\Domain\\Graphic.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\Domain\\Graphic.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\Domain\\Graphic.cs",
+              "RelativeToolTip": "SoundDefect\\Domain\\Graphic.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T11:41:58.063Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "FileReader.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\Service\\FileReader.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\Service\\FileReader.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\Service\\FileReader.cs",
+              "RelativeToolTip": "SoundDefect\\Service\\FileReader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T10:46:18.002Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ChannelToggleViewModel.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\ViewModel\\ChannelToggleViewModel.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\ViewModel\\ChannelToggleViewModel.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\ViewModel\\ChannelToggleViewModel.cs",
+              "RelativeToolTip": "SoundDefect\\ViewModel\\ChannelToggleViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAkAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:13:16.748Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainViewModel.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\ViewModel\\MainViewModel.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\ViewModel\\MainViewModel.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\ViewModel\\MainViewModel.cs",
+              "RelativeToolTip": "SoundDefect\\ViewModel\\MainViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:13:15.674Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\View\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "SoundDefect\\View\\MainWindow.xaml.cs",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\View\\MainWindow.xaml.cs",
+              "RelativeToolTip": "SoundDefect\\View\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-26T09:13:07.203Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\SoundDefect\\SoundDefect\\View\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "SoundDefect\\View\\MainWindow.xaml",
+              "ToolTip": "D:\\SoundDefect\\SoundDefect\\View\\MainWindow.xaml",
+              "RelativeToolTip": "SoundDefect\\View\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-10-26T09:12:40.973Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

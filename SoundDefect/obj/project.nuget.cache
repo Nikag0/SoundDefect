@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "JHJMfAPLi0o=",
+  "dgSpecHash": "DcfdvSeTzzk=",
   "success": true,
-  "projectFilePath": "D:\\SoundDefect\\SoundDeffect\\SoundDeffect.csproj",
+  "projectFilePath": "D:\\SoundDefect\\SoundDefect\\SoundDefect.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Пользователь\\.nuget\\packages\\harfbuzzsharp\\8.3.1.1\\harfbuzzsharp.8.3.1.1.nupkg.sha512",
     "C:\\Users\\Пользователь\\.nuget\\packages\\harfbuzzsharp.nativeassets.linux\\8.3.1.1\\harfbuzzsharp.nativeassets.linux.8.3.1.1.nupkg.sha512",
@@ -37,9 +37,9 @@
       "code": "NU1701",
       "level": "Warning",
       "message": "Пакет \"SkiaSharp.Views.WPF 3.119.0\" был восстановлен с помощью \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1\", а не целевой платформы проекта \"net10.0-windows7.0\". Этот пакет может быть не полностью совместим с вашим проектом.",
-      "projectPath": "D:\\SoundDefect\\SoundDeffect\\SoundDeffect.csproj",
+      "projectPath": "D:\\SoundDefect\\SoundDefect\\SoundDefect.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\SoundDefect\\SoundDeffect\\SoundDeffect.csproj",
+      "filePath": "D:\\SoundDefect\\SoundDefect\\SoundDefect.csproj",
       "libraryId": "SkiaSharp.Views.WPF",
       "targetGraphs": [
         "net10.0-windows"

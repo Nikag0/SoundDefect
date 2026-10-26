@@ -1,5 +1,4 @@
-﻿using SoundDeffect.Domain;
-using SoundDeffect.Service;
+﻿using SoundDeffect.Service;
 using SoundDeffect.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,11 +11,11 @@ namespace SoundDeffect.ViewModel
     {
         private readonly FileReader _fileReader;
         private string _statusMessage = "Готов к загрузке файла";
-        private Dataset? _currentDataset;
+        //private Dataset? _currentDataset;
         private bool _isLoading;
 
-        public event Action<Dataset, int[]>? RequestPlotUpdate;
-        public event Action<Dataset>? DatasetLoaded;
+        //public event Action<Dataset, int[]>? RequestPlotUpdate;
+        //public event Action<Dataset>? DatasetLoaded;
         public event Action? ChartsCleared;
         public MainViewModel(FileReader fileReader)
         {
@@ -48,77 +47,77 @@ namespace SoundDeffect.ViewModel
 
         private async Task LoadFileAsync()
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Выберите текстовый файл с данными графиков",
-                Filter = "Текстовые файлы (*.txt)|*.txt|CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
-                Multiselect = false
-            };
+            //var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            //{
+            //    Title = "Выберите текстовый файл с данными графиков",
+            //    Filter = "Текстовые файлы (*.txt)|*.txt|CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
+            //    Multiselect = false
+            //};
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    IsLoading = true;
-                    StatusMessage = "Чтение и парсинг файла...";
+            //if (openFileDialog.ShowDialog() == true)
+            //{
+            //    try
+            //    {
+            //        IsLoading = true;
+            //        StatusMessage = "Чтение и парсинг файла...";
 
-                    if (_currentDataset == null)
-                    {
-                        _currentDataset = new Dataset();
-                    }
+            //        if (_currentDataset == null)
+            //        {
+            //            _currentDataset = new Dataset();
+            //        }
 
-                    int currentChannelsCount = _currentDataset.Channels.Count;
+            //        int currentChannelsCount = _currentDataset.Channels.Count;
 
-                    Dataset newDataset = await _fileReader.ParseFileAsync(openFileDialog.FileName);
+            //        Dataset newDataset = await _fileReader.ParseFileAsync(openFileDialog.FileName);
 
-                    foreach (var kvp in newDataset.Channels)
-                    {
-                        int oldChannelId = kvp.Key;
-                        var newChannelData = kvp.Value;
+            //        foreach (var kvp in newDataset.Channels)
+            //        {
+            //            int oldChannelId = kvp.Key;
+            //            var newChannelData = kvp.Value;
 
-                        int uniqueChannelId = oldChannelId + currentChannelsCount;
+            //            int uniqueChannelId = oldChannelId + currentChannelsCount;
 
-                        _currentDataset.Channels[uniqueChannelId] = newChannelData;
+            //            _currentDataset.Channels[uniqueChannelId] = newChannelData;
 
-                        var toggle = new ChannelToggleViewModel(uniqueChannelId);
-                        toggle.IsVisibleChanged += UpdateActiveCharts;
+            //            var toggle = new ChannelToggleViewModel(uniqueChannelId);
+            //            toggle.IsVisibleChanged += UpdateActiveCharts;
 
-                        ChannelToggles.Add(toggle);
-                    }
+            //            ChannelToggles.Add(toggle);
+            //        }
 
-                    StatusMessage = $"Файл успешно загружен. Найдено каналов: {_currentDataset.Channels.Count}";
+            //        StatusMessage = $"Файл успешно загружен. Найдено каналов: {_currentDataset.Channels.Count}";
 
-                    DatasetLoaded?.Invoke(_currentDataset);
-                }
-                catch (Exception ex)
-                {
-                    StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
-                }
-                finally
-                {
-                    IsLoading = false;
-                }
-            }
+            //        DatasetLoaded?.Invoke(_currentDataset);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
+            //    }
+            //    finally
+            //    {
+            //        IsLoading = false;
+            //    }
+            //}
         }
 
         private void ClearCharts()
         {
-            _currentDataset = null;
-            ClearToggles();
-            StatusMessage = "Графики удалены";
-            RequestPlotUpdate?.Invoke(new Dataset(), Array.Empty<int>());
+            //_currentDataset = null;
+            //ClearToggles();
+            //StatusMessage = "Графики удалены";
+            //RequestPlotUpdate?.Invoke(new Dataset(), Array.Empty<int>());
         }
 
         private void UpdateActiveCharts()
         {
-            if (_currentDataset == null) return;
+            //if (_currentDataset == null) return;
 
-            int[] activeIds = ChannelToggles
-                .Where(t => t.IsVisible)
-                .Select(t => t.ChannelId)
-                .ToArray();
+            //int[] activeIds = ChannelToggles
+            //    .Where(t => t.IsVisible)
+            //    .Select(t => t.ChannelId)
+            //    .ToArray();
 
-            RequestPlotUpdate?.Invoke(_currentDataset, activeIds);
+            //RequestPlotUpdate?.Invoke(_currentDataset, activeIds);
         }
 
         private void ClearToggles()
