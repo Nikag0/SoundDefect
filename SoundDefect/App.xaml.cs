@@ -1,15 +1,19 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
-using SoundDeffect.Service;
-using SoundDeffect.ViewModel;
-using SoundDeffect.View;
+using SoundDefect.Application.Import;
+using SoundDefect.Application.Workspace;
+using SoundDefect.Dialogs;
+using SoundDefect.Infrastructure.Parsing;
+using SoundDefect.Infrastructure.Parsing.Formats;
+using SoundDefect.ViewModel;
+using SoundDefect.View;
 
-namespace SoundDeffect
+namespace SoundDefect
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         public static IServiceProvider ServiceProvider { get; private set; } = null!;
         protected override void OnStartup(StartupEventArgs e)
@@ -27,10 +31,18 @@ namespace SoundDeffect
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<FileReader>();
+            // Application
+            services.AddSingleton<ISignalWorkspace, SignalWorkspace>();
+            services.AddTransient<ImportSignalsFromFile>();
 
+            // Infrastructure
+            services.AddSingleton<ITextSignalFormat, ChannelXYFormat>();
+            services.AddSingleton<ITextSignalFormat, MultiColumnFirstSignalFormat>();
+            services.AddSingleton<ISignalFileParser, TextSignalFileParser>();
+
+            // Presentation
+            services.AddSingleton<IFileDialogService, FileDialogService>();
             services.AddTransient<MainViewModel>();
-
             services.AddTransient<MainWindow>();
         }
     }

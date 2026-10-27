@@ -1,45 +1,42 @@
-﻿using SoundDefect.Domain;
-using System;
-using System;
-using System.Collections.Generic;
-using System.Collections.Generic;
-using System.Text;
+﻿using SoundDefect.Domain.Signals;
 
-public class GraphicNormalizationService
+namespace SoundDefect.Service
 {
-    public void NormalizeAll(IEnumerable<Graphic> graphics)
+    public class GraphicNormalizationService
     {
-        double globalMin = double.MaxValue;
-        double globalMax = double.MinValue;
-        bool hasData = false;
-
-        foreach (var graphic in graphics)
+        public IReadOnlyDictionary<SignalId, double[]> NormalizeAll(IReadOnlyCollection<Signal> signals)
         {
-            foreach (double y in graphic.YValuesOriginal)
+            double globalMin = double.MaxValue;
+            double globalMax = double.MinValue;
+
+            foreach (var signal in signals)
             {
-                if (y < globalMin) globalMin = y;
-                if (y > globalMax) globalMax = y;
-                hasData = true;
-            }
-        }
-
-        if (!hasData) return;
-
-        double globalRange = globalMax - globalMin;
-        
-        foreach (var graphic in graphics)
-        {
-            double[] source = graphic.YValuesOriginal;
-            double[] normalized = new double[source.Length];
-
-            for (int i = 0; i < source.Length; i++)
-            {
-                normalized[i] = globalRange != 0
-                    ? (source[i] - globalMin) / globalRange
-                    : 0.0;
+                foreach (double y in signal.Ys.Span)
+                {
+                    if (y < globalMin) globalMin = y;
+                    if (y > globalMax) globalMax = y;
+                }
             }
 
-            graphic.UpdateNormalizedData(normalized);
+            double globalRange = globalMax - globalMin;
+            var result = new Dictionary<SignalId, double[]>(signals.Count);
+
+            foreach (var signal in signals)
+            {
+                ReadOnlySpan<double> source = signal.Ys.Span;
+                double[] normalized = new double[source.Length];
+
+                for (int i = 0; i < source.Length; i++)
+                {
+                    normalized[i] = globalRange != 0
+                        ? (source[i] - globalMin) / globalRange
+                        : 0.0;
+                }
+
+                result[signal.Id] = normalized;
+            }
+
+            return result;
         }
     }
 }

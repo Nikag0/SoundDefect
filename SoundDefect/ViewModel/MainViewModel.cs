@@ -1,31 +1,38 @@
-﻿using SoundDeffect.Service;
-using SoundDeffect.ViewModels;
+﻿using SoundDefect.Application.Import;
+using SoundDefect.Application.Workspace;
+using SoundDefect.Dialogs;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.IO;
 using System.Windows.Input;
 
-namespace SoundDeffect.ViewModel
+namespace SoundDefect.ViewModel
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase
     {
-        private readonly FileReader _fileReader;
+        private readonly ImportSignalsFromFile _importSignals;
+        private readonly ISignalWorkspace _workspace;
+        private readonly IFileDialogService _fileDialog;
+        private readonly SignalColorPalette _palette = new();
+
         private string _statusMessage = "Готов к загрузке файла";
-        //private Dataset? _currentDataset;
         private bool _isLoading;
 
-        //public event Action<Dataset, int[]>? RequestPlotUpdate;
-        //public event Action<Dataset>? DatasetLoaded;
-        public event Action? ChartsCleared;
-        public MainViewModel(FileReader fileReader)
+        public MainViewModel(ImportSignalsFromFile importSignals, ISignalWorkspace workspace, IFileDialogService fileDialog)
         {
-            _fileReader = fileReader;
-            LoadFileCommand = new RelayCommand(async () => await LoadFileAsync(), () => !IsLoading);
-            ClearCommand = new RelayCommand(ClearCharts, () => !IsLoading);
+            _importSignals = importSignals;
+            _workspace = workspace;
+            _fileDialog = fileDialog;
+
+            _workspace.Changed += OnWorkspaceChanged;
+
+            LoadFileCommand = new AsyncRelayCommand(LoadFileAsync, () => !IsLoading);
+            ClearCommand = new RelayCommand(ClearSignals, () => !IsLoading && Signals.Count > 0);
         }
 
         public ICommand LoadFileCommand { get; }
         public ICommand ClearCommand { get; }
+
+        public ObservableCollection<SignalItemViewModel> Signals { get; } = new();
 
         public string StatusMessage
         {
@@ -43,101 +50,58 @@ namespace SoundDeffect.ViewModel
             }
         }
 
-        public ObservableCollection<ChannelToggleViewModel> ChannelToggles { get; } = new();
-
         private async Task LoadFileAsync()
         {
-            //var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            //{
-            //    Title = "Выберите текстовый файл с данными графиков",
-            //    Filter = "Текстовые файлы (*.txt)|*.txt|CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
-            //    Multiselect = false
-            //};
+            string? filePath = _fileDialog.OpenSignalFile();
+            if (filePath == null) return;
 
-            //if (openFileDialog.ShowDialog() == true)
-            //{
-            //    try
-            //    {
-            //        IsLoading = true;
-            //        StatusMessage = "Чтение и парсинг файла...";
-
-            //        if (_currentDataset == null)
-            //        {
-            //            _currentDataset = new Dataset();
-            //        }
-
-            //        int currentChannelsCount = _currentDataset.Channels.Count;
-
-            //        Dataset newDataset = await _fileReader.ParseFileAsync(openFileDialog.FileName);
-
-            //        foreach (var kvp in newDataset.Channels)
-            //        {
-            //            int oldChannelId = kvp.Key;
-            //            var newChannelData = kvp.Value;
-
-            //            int uniqueChannelId = oldChannelId + currentChannelsCount;
-
-            //            _currentDataset.Channels[uniqueChannelId] = newChannelData;
-
-            //            var toggle = new ChannelToggleViewModel(uniqueChannelId);
-            //            toggle.IsVisibleChanged += UpdateActiveCharts;
-
-            //            ChannelToggles.Add(toggle);
-            //        }
-
-            //        StatusMessage = $"Файл успешно загружен. Найдено каналов: {_currentDataset.Channels.Count}";
-
-            //        DatasetLoaded?.Invoke(_currentDataset);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
-            //    }
-            //    finally
-            //    {
-            //        IsLoading = false;
-            //    }
-            //}
-        }
-
-        private void ClearCharts()
-        {
-            //_currentDataset = null;
-            //ClearToggles();
-            //StatusMessage = "Графики удалены";
-            //RequestPlotUpdate?.Invoke(new Dataset(), Array.Empty<int>());
-        }
-
-        private void UpdateActiveCharts()
-        {
-            //if (_currentDataset == null) return;
-
-            //int[] activeIds = ChannelToggles
-            //    .Where(t => t.IsVisible)
-            //    .Select(t => t.ChannelId)
-            //    .ToArray();
-
-            //RequestPlotUpdate?.Invoke(_currentDataset, activeIds);
-        }
-
-        private void ClearToggles()
-        {
-            foreach (var toggle in ChannelToggles)
+            try
             {
-                toggle.IsVisibleChanged -= UpdateActiveCharts;
+                IsLoading = true;
+                StatusMessage = "Чтение и парсинг файла...";
+
+                var signals = await _importSignals.ExecuteAsync(filePath);
+
+                StatusMessage = $"Файл «{Path.GetFileName(filePath)}» загружен. Сигналов: {signals.Count}";
             }
-            ChannelToggles.Clear();
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        private void ClearSignals()
         {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            _workspace.Clear();
+            StatusMessage = "Графики удалены";
+        }
+
+        private void OnWorkspaceChanged(object? sender, SignalWorkspaceChangedEventArgs e)
+        {
+            switch (e.Change)
+            {
+                case SignalWorkspaceChange.Added:
+                    foreach (var signal in e.Signals)
+                        Signals.Add(new SignalItemViewModel(signal, _palette.Next()));
+                    break;
+
+                case SignalWorkspaceChange.Removed:
+                    foreach (var signal in e.Signals)
+                    {
+                        var item = Signals.FirstOrDefault(s => s.Id == signal.Id);
+                        if (item != null) Signals.Remove(item);
+                    }
+                    break;
+
+                case SignalWorkspaceChange.Cleared:
+                    Signals.Clear();
+                    _palette.Reset();
+                    break;
+            }
         }
     }
 }

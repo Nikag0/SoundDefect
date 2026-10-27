@@ -14,4 +14,10 @@
     <PackageReference Include="ScottPlot.WPF" Version="5.1.59" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SoundDefect.Domain\SoundDefect.Domain.csproj" />
+    <ProjectReference Include="..\SoundDefect.Application\SoundDefect.Application.csproj" />
+    <ProjectReference Include="..\SoundDefect.Infrastructure\SoundDefect.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
