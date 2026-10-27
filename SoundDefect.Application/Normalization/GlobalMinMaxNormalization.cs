@@ -1,10 +1,18 @@
-﻿using SoundDefect.Domain.Signals;
+using SoundDefect.Domain.Signals;
 
-namespace SoundDefect.Service
+namespace SoundDefect.Application.Normalization
 {
-    public class GraphicNormalizationService
+    /// <summary>
+    /// Приводит все сигналы к диапазону [0; 1] по общему минимуму и максимуму набора.
+    /// Соотношение амплитуд между сигналами сохраняется.
+    /// </summary>
+    public class GlobalMinMaxNormalization : INormalizationMethod
     {
-        public IReadOnlyDictionary<SignalId, double[]> NormalizeAll(IReadOnlyCollection<Signal> signals)
+        public string Name => "Min-Max (общий)";
+
+        public string Description => "Все сигналы приводятся к диапазону [0; 1] по общему минимуму и максимуму. Соотношение амплитуд между сигналами сохраняется.";
+
+        public IReadOnlyDictionary<SignalId, double[]> Normalize(IReadOnlyCollection<Signal> signals)
         {
             double globalMin = double.MaxValue;
             double globalMax = double.MinValue;

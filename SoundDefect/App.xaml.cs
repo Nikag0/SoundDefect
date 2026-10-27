@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using SoundDefect.Application.Import;
+using SoundDefect.Application.Normalization;
 using SoundDefect.Application.Workspace;
 using SoundDefect.Dialogs;
 using SoundDefect.Infrastructure.Parsing;
@@ -34,6 +35,7 @@ namespace SoundDefect
             // Application
             services.AddSingleton<ISignalWorkspace, SignalWorkspace>();
             services.AddTransient<ImportSignalsFromFile>();
+            services.AddSingleton<INormalizationMethod, GlobalMinMaxNormalization>();
 
             // Infrastructure
             services.AddSingleton<ITextSignalFormat, ChannelXYFormat>();
