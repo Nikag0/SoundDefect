@@ -35,7 +35,9 @@ namespace SoundDefect
             // Application
             services.AddSingleton<ISignalWorkspace, SignalWorkspace>();
             services.AddTransient<ImportSignalsFromFile>();
+            // Способы нормализации: первый зарегистрированный выбран по умолчанию
             services.AddSingleton<INormalizationMethod, GlobalMinMaxNormalization>();
+            services.AddSingleton<INormalizationMethod, PerSignalMinMaxNormalization>();
 
             // Infrastructure
             services.AddSingleton<ITextSignalFormat, ChannelXYFormat>();
