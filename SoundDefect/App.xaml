@@ -1,7 +1,7 @@
-﻿<Application x:Class="SoundDeffect.App"
+﻿<Application x:Class="SoundDefect.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SoundDeffect">
+             xmlns:local="clr-namespace:SoundDefect">
     <Application.Resources>
          
     </Application.Resources>

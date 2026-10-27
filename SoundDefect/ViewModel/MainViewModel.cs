@@ -1,32 +1,85 @@
-﻿using SoundDeffect.Domain;
-using SoundDeffect.Service;
-using SoundDeffect.ViewModels;
+﻿using SoundDefect.Application.Import;
+using SoundDefect.Application.Normalization;
+using SoundDefect.Application.Workspace;
+using SoundDefect.Dialogs;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.IO;
 using System.Windows.Input;
 
-namespace SoundDeffect.ViewModel
+namespace SoundDefect.ViewModel
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase
     {
-        private readonly FileReader _fileReader;
-        private string _statusMessage = "Готов к загрузке файла";
-        private Dataset? _currentDataset;
-        private bool _isLoading;
+        private readonly ImportSignalsFromFile _importSignals;
+        private readonly ISignalWorkspace _workspace;
+        private readonly IFileDialogService _fileDialog;
+        private readonly SignalColorPalette _palette = new();
 
-        public event Action<Dataset, int[]>? RequestPlotUpdate;
-        public event Action<Dataset>? DatasetLoaded;
-        public event Action? ChartsCleared;
-        public MainViewModel(FileReader fileReader)
+        private string _statusMessage = "Готов к загрузке файла";
+        private bool _isLoading;
+        private bool _isNormalized;
+        private INormalizationMethod _selectedNormalizationMethod;
+
+        public MainViewModel(
+            ImportSignalsFromFile importSignals,
+            ISignalWorkspace workspace,
+            IFileDialogService fileDialog,
+            IEnumerable<INormalizationMethod> normalizationMethods)
         {
-            _fileReader = fileReader;
-            LoadFileCommand = new RelayCommand(async () => await LoadFileAsync(), () => !IsLoading);
-            ClearCommand = new RelayCommand(ClearCharts, () => !IsLoading);
+            _importSignals = importSignals;
+            _workspace = workspace;
+            _fileDialog = fileDialog;
+
+            NormalizationMethods = normalizationMethods.ToList();
+            if (NormalizationMethods.Count == 0)
+                throw new ArgumentException("Не зарегистрировано ни одного способа нормализации.", nameof(normalizationMethods));
+            _selectedNormalizationMethod = NormalizationMethods[0];
+
+            _workspace.Changed += OnWorkspaceChanged;
+
+            LoadFileCommand = new AsyncRelayCommand(LoadFileAsync, () => !IsLoading);
+            ClearCommand = new RelayCommand(ClearSignals, () => !IsLoading && Signals.Count > 0);
         }
 
         public ICommand LoadFileCommand { get; }
         public ICommand ClearCommand { get; }
+
+        public ObservableCollection<SignalItemViewModel> Signals { get; } = new();
+
+        public IReadOnlyList<INormalizationMethod> NormalizationMethods { get; }
+
+        /// <summary>
+        /// true — на графике нормализованные сигналы, false — исходные.
+        /// </summary>
+        public bool IsNormalized
+        {
+            get => _isNormalized;
+            set
+            {
+                if (!SetField(ref _isNormalized, value)) return;
+                OnPropertyChanged(nameof(ShowOriginal));
+                ApplyDisplayMode();
+            }
+        }
+
+        /// <summary>
+        /// Обратное к IsNormalized, для привязки переключателя «Исходные».
+        /// </summary>
+        public bool ShowOriginal
+        {
+            get => !IsNormalized;
+            set => IsNormalized = !value;
+        }
+
+        public INormalizationMethod SelectedNormalizationMethod
+        {
+            get => _selectedNormalizationMethod;
+            set
+            {
+                if (value == null || !SetField(ref _selectedNormalizationMethod, value)) return;
+                if (IsNormalized) ApplyDisplayMode();
+            }
+        }
 
         public string StatusMessage
         {
@@ -44,101 +97,86 @@ namespace SoundDeffect.ViewModel
             }
         }
 
-        public ObservableCollection<ChannelToggleViewModel> ChannelToggles { get; } = new();
-
         private async Task LoadFileAsync()
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            string? filePath = _fileDialog.OpenSignalFile();
+            if (filePath == null) return;
+
+            try
             {
-                Title = "Выберите текстовый файл с данными графиков",
-                Filter = "Текстовые файлы (*.txt)|*.txt|CSV файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
-                Multiselect = false
-            };
+                IsLoading = true;
+                StatusMessage = "Чтение и парсинг файла...";
 
-            if (openFileDialog.ShowDialog() == true)
+                var signals = await _importSignals.ExecuteAsync(filePath);
+
+                StatusMessage = $"Файл «{Path.GetFileName(filePath)}» загружен. Сигналов: {signals.Count}";
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    IsLoading = true;
-                    StatusMessage = "Чтение и парсинг файла...";
-
-                    if (_currentDataset == null)
-                    {
-                        _currentDataset = new Dataset();
-                    }
-
-                    int currentChannelsCount = _currentDataset.Channels.Count;
-
-                    Dataset newDataset = await _fileReader.ParseFileAsync(openFileDialog.FileName);
-
-                    foreach (var kvp in newDataset.Channels)
-                    {
-                        int oldChannelId = kvp.Key;
-                        var newChannelData = kvp.Value;
-
-                        int uniqueChannelId = oldChannelId + currentChannelsCount;
-
-                        _currentDataset.Channels[uniqueChannelId] = newChannelData;
-
-                        var toggle = new ChannelToggleViewModel(uniqueChannelId);
-                        toggle.IsVisibleChanged += UpdateActiveCharts;
-
-                        ChannelToggles.Add(toggle);
-                    }
-
-                    StatusMessage = $"Файл успешно загружен. Найдено каналов: {_currentDataset.Channels.Count}";
-
-                    DatasetLoaded?.Invoke(_currentDataset);
-                }
-                catch (Exception ex)
-                {
-                    StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
-                }
-                finally
-                {
-                    IsLoading = false;
-                }
+                StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void ClearCharts()
+        private void ClearSignals()
         {
-            _currentDataset = null;
-            ClearToggles();
+            _workspace.Clear();
             StatusMessage = "Графики удалены";
-            RequestPlotUpdate?.Invoke(new Dataset(), Array.Empty<int>());
         }
 
-        private void UpdateActiveCharts()
+        private void OnWorkspaceChanged(object? sender, SignalWorkspaceChangedEventArgs e)
         {
-            if (_currentDataset == null) return;
-
-            int[] activeIds = ChannelToggles
-                .Where(t => t.IsVisible)
-                .Select(t => t.ChannelId)
-                .ToArray();
-
-            RequestPlotUpdate?.Invoke(_currentDataset, activeIds);
-        }
-
-        private void ClearToggles()
-        {
-            foreach (var toggle in ChannelToggles)
+            switch (e.Change)
             {
-                toggle.IsVisibleChanged -= UpdateActiveCharts;
+                case SignalWorkspaceChange.Added:
+                    foreach (var signal in e.Signals)
+                        Signals.Add(new SignalItemViewModel(signal, _palette.Next()));
+
+                    // Набор изменился — общие характеристики для нормализации тоже
+                    if (IsNormalized) ApplyDisplayMode();
+                    break;
+
+                case SignalWorkspaceChange.Removed:
+                    foreach (var signal in e.Signals)
+                    {
+                        var item = Signals.FirstOrDefault(s => s.Id == signal.Id);
+                        if (item != null) Signals.Remove(item);
+                    }
+
+                    if (IsNormalized) ApplyDisplayMode();
+                    break;
+
+                case SignalWorkspaceChange.Cleared:
+                    Signals.Clear();
+                    _palette.Reset();
+                    break;
             }
-            ChannelToggles.Clear();
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        /// <summary>
+        /// Показывает на графике исходные или нормализованные значения в зависимости от режима.
+        /// Нормализация считается по всем загруженным сигналам, а не только по видимым,
+        /// чтобы скрытие сигнала не меняло масштаб остальных.
+        /// </summary>
+        private void ApplyDisplayMode()
         {
-            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            if (!IsNormalized)
+            {
+                foreach (var item in Signals)
+                    item.ShowOriginal();
+                return;
+            }
+
+            var normalized = SelectedNormalizationMethod.Normalize(_workspace.Signals);
+
+            foreach (var item in Signals)
+            {
+                if (normalized.TryGetValue(item.Id, out var ys))
+                    item.ShowValues(ys);
+            }
         }
     }
 }

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SoundDefect.Domain/SoundDefect.Domain.csproj" />
+  <Project Path="SoundDefect.Application/SoundDefect.Application.csproj" />
+  <Project Path="SoundDefect.Infrastructure/SoundDefect.Infrastructure.csproj" />
+  <Project Path="SoundDefect/SoundDefect.csproj" />
+</Solution>
