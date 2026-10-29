@@ -10,23 +10,25 @@ namespace SoundDefect.View
     /// <summary>
     /// Связывает коллекцию сигналов из ViewModel с графиком ScottPlot:
     /// добавляет и удаляет кривые, переключает их видимость.
-    /// Единственное место, которое знает о ScottPlot.
+    /// Каждый сигнал рисуется набором кривых — по одной на отрезок, чтобы между отрезками были разрывы.
     /// </summary>
     public sealed class SignalPlotRenderer : IDisposable
     {
         private readonly WpfPlot _plot;
         private readonly ObservableCollection<SignalItemViewModel> _signals;
-        private readonly Dictionary<SignalItemViewModel, SignalXY> _plottables = new();
+        private readonly PlotScaleViewModel _scale;
+        private readonly Dictionary<SignalItemViewModel, List<SignalXY>> _plottables = new();
 
-        public SignalPlotRenderer(WpfPlot plot, ObservableCollection<SignalItemViewModel> signals)
+        public SignalPlotRenderer(WpfPlot plot, ObservableCollection<SignalItemViewModel> signals, PlotScaleViewModel scale)
         {
             _plot = plot;
             _signals = signals;
+            _scale = scale;
 
             _signals.CollectionChanged += OnCollectionChanged;
 
             foreach (var item in _signals)
-                AddPlottable(item);
+                AddPlottables(item);
 
             RescaleAndRefresh();
         }
@@ -36,17 +38,17 @@ namespace SoundDefect.View
             if (e.Action == NotifyCollectionChangedAction.Reset)
             {
                 foreach (var item in _plottables.Keys.ToList())
-                    RemovePlottable(item);
+                    RemovePlottables(item);
             }
             else
             {
                 if (e.OldItems != null)
                     foreach (SignalItemViewModel item in e.OldItems)
-                        RemovePlottable(item);
+                        RemovePlottables(item);
 
                 if (e.NewItems != null)
                     foreach (SignalItemViewModel item in e.NewItems)
-                        AddPlottable(item);
+                        AddPlottables(item);
             }
 
             RescaleAndRefresh();
@@ -54,61 +56,79 @@ namespace SoundDefect.View
 
         private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is not SignalItemViewModel item || !_plottables.TryGetValue(item, out var plottable))
+            if (sender is not SignalItemViewModel item || !_plottables.TryGetValue(item, out var plottables))
                 return;
 
             switch (e.PropertyName)
             {
                 case nameof(SignalItemViewModel.IsVisible):
-                    plottable.IsVisible = item.IsVisible;
+                    foreach (var plottable in plottables)
+                        plottable.IsVisible = item.IsVisible;
                     _plot.Refresh();
                     break;
 
-                case nameof(SignalItemViewModel.Xs):
-                case nameof(SignalItemViewModel.Ys):
-                    RemovePlottable(item);
-                    AddPlottable(item);
+                case nameof(SignalItemViewModel.Segments):
+                    RemovePlottables(item);
+                    AddPlottables(item);
                     RescaleAndRefresh();
                     break;
             }
         }
 
-        private void AddPlottable(SignalItemViewModel item)
+        private void AddPlottables(SignalItemViewModel item)
         {
-            var plottable = _plot.Plot.Add.SignalXY(item.Xs, item.Ys);
-            plottable.LegendText = item.Name;
-            plottable.Color = new ScottPlot.Color(item.Color.R, item.Color.G, item.Color.B);
-            plottable.IsVisible = item.IsVisible;
+            var color = new ScottPlot.Color(item.Color.R, item.Color.G, item.Color.B);
+            var plottables = new List<SignalXY>(item.Segments.Count);
 
-            _plottables.Add(item, plottable);
+            foreach (var segment in item.Segments)
+            {
+                var plottable = _plot.Plot.Add.SignalXY(segment.Xs, segment.Ys);
+                plottable.Color = color;
+                plottable.IsVisible = item.IsVisible;
+                plottables.Add(plottable);
+            }
+
+            _plottables.Add(item, plottables);
             item.PropertyChanged += OnItemPropertyChanged;
         }
 
-        private void RemovePlottable(SignalItemViewModel item)
+        private void RemovePlottables(SignalItemViewModel item)
         {
-            if (!_plottables.Remove(item, out var plottable))
+            if (!_plottables.Remove(item, out var plottables))
                 return;
 
             item.PropertyChanged -= OnItemPropertyChanged;
-            _plot.Plot.Remove(plottable);
+            foreach (var plottable in plottables)
+                _plot.Plot.Remove(plottable);
         }
 
+        /// <summary>
+        /// Подгоняет масштаб под данные. Зафиксированные оси (PlotScaleViewModel) не меняются.
+        /// </summary>
         private void RescaleAndRefresh()
         {
-            if (_plottables.Count > 0)
-                _plot.Plot.Axes.AutoScale();
-            else
+            if (_plottables.Values.Any(p => p.Count > 0))
+                PlotScaleController.AutoScale(_plot, _scale);
+            else if (!_scale.IsXLocked && !_scale.IsYLocked)
                 _plot.Plot.Axes.SetLimits(0, 10, 0, 10);
 
             _plot.Refresh();
         }
 
+        /// <summary>
+        /// Отписывается от сигналов и убирает свои кривые с графика,
+        /// чтобы при повторном подключении к тому же графику кривые не задвоились.
+        /// </summary>
         public void Dispose()
         {
             _signals.CollectionChanged -= OnCollectionChanged;
 
-            foreach (var item in _plottables.Keys)
+            foreach (var (item, plottables) in _plottables)
+            {
                 item.PropertyChanged -= OnItemPropertyChanged;
+                foreach (var plottable in plottables)
+                    _plot.Plot.Remove(plottable);
+            }
 
             _plottables.Clear();
         }

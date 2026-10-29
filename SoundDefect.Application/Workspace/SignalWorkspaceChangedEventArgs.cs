@@ -6,7 +6,13 @@ namespace SoundDefect.Application.Workspace
     {
         Added,
         Removed,
-        Cleared
+        Cleared,
+
+        /// <summary>Лазер установлен или заменён. Signals — новый лазер.</summary>
+        LaserSet,
+
+        /// <summary>Лазер удалён. Signals — удалённый лазер.</summary>
+        LaserRemoved
     }
 
     public class SignalWorkspaceChangedEventArgs : EventArgs

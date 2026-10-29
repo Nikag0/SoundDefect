@@ -11,6 +11,8 @@ namespace SoundDefect.Application.Workspace
 
         public IReadOnlyCollection<Signal> Signals => _signals.Values;
 
+        public Signal? Laser { get; private set; }
+
         public event EventHandler<SignalWorkspaceChangedEventArgs>? Changed;
 
         public bool TryGet(SignalId id, out Signal signal) => _signals.TryGetValue(id, out signal!);
@@ -49,6 +51,25 @@ namespace SoundDefect.Application.Workspace
             _signals.Clear();
 
             Changed?.Invoke(this, new SignalWorkspaceChangedEventArgs(SignalWorkspaceChange.Cleared, removed));
+        }
+
+        public void SetLaser(Signal laser)
+        {
+            ArgumentNullException.ThrowIfNull(laser);
+
+            Laser = laser;
+            Changed?.Invoke(this, new SignalWorkspaceChangedEventArgs(SignalWorkspaceChange.LaserSet, new[] { laser }));
+        }
+
+        public bool RemoveLaser()
+        {
+            if (Laser == null) return false;
+
+            var removed = Laser;
+            Laser = null;
+
+            Changed?.Invoke(this, new SignalWorkspaceChangedEventArgs(SignalWorkspaceChange.LaserRemoved, new[] { removed }));
+            return true;
         }
     }
 }
