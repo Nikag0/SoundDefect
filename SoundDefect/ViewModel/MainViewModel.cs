@@ -1,182 +1,82 @@
-﻿using SoundDefect.Application.Import;
-using SoundDefect.Application.Normalization;
-using SoundDefect.Application.Workspace;
-using SoundDefect.Dialogs;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Windows.Input;
 
 namespace SoundDefect.ViewModel
 {
+    /// <summary>
+    /// Главное окно: список вкладок с графиками, выбранная вкладка, добавление и закрытие вкладок.
+    /// </summary>
     public class MainViewModel : ViewModelBase
     {
-        private readonly ImportSignalsFromFile _importSignals;
-        private readonly ISignalWorkspace _workspace;
-        private readonly IFileDialogService _fileDialog;
-        private readonly SignalColorPalette _palette = new();
+        private readonly ChartTabFactory _tabFactory;
+        private const string TabTitlePrefix = "График ";
 
-        private string _statusMessage = "Готов к загрузке файла";
-        private bool _isLoading;
-        private bool _isNormalized;
-        private INormalizationMethod _selectedNormalizationMethod;
+        private ChartTabViewModel? _selectedTab;
 
-        public MainViewModel(
-            ImportSignalsFromFile importSignals,
-            ISignalWorkspace workspace,
-            IFileDialogService fileDialog,
-            IEnumerable<INormalizationMethod> normalizationMethods)
+        public MainViewModel(ChartTabFactory tabFactory)
         {
-            _importSignals = importSignals;
-            _workspace = workspace;
-            _fileDialog = fileDialog;
+            _tabFactory = tabFactory;
 
-            NormalizationMethods = normalizationMethods.ToList();
-            if (NormalizationMethods.Count == 0)
-                throw new ArgumentException("Не зарегистрировано ни одного способа нормализации.", nameof(normalizationMethods));
-            _selectedNormalizationMethod = NormalizationMethods[0];
+            AddTabCommand = new RelayCommand(AddTab);
+            CloseTabCommand = new RelayCommand<ChartTabViewModel>(CloseTab, _ => Tabs.Count > 1);
 
-            _workspace.Changed += OnWorkspaceChanged;
-
-            LoadFileCommand = new AsyncRelayCommand(LoadFileAsync, () => !IsLoading);
-            ClearCommand = new RelayCommand(ClearSignals, () => !IsLoading && Signals.Count > 0);
+            AddTab();
         }
 
-        public ICommand LoadFileCommand { get; }
-        public ICommand ClearCommand { get; }
+        public ObservableCollection<ChartTabViewModel> Tabs { get; } = new();
 
-        public ObservableCollection<SignalItemViewModel> Signals { get; } = new();
-
-        public IReadOnlyList<INormalizationMethod> NormalizationMethods { get; }
-
-        /// <summary>
-        /// true — на графике нормализованные сигналы, false — исходные.
-        /// </summary>
-        public bool IsNormalized
+        public ChartTabViewModel? SelectedTab
         {
-            get => _isNormalized;
+            get => _selectedTab;
             set
             {
-                if (!SetField(ref _isNormalized, value)) return;
-                OnPropertyChanged(nameof(ShowOriginal));
-                ApplyDisplayMode();
+                var previous = _selectedTab;
+                if (!SetField(ref _selectedTab, value)) return;
+
+                if (previous != null) previous.IsSelected = false;
+                if (value != null) value.IsSelected = true;
             }
+        }
+
+        public ICommand AddTabCommand { get; }
+
+        /// <summary>
+        /// Закрывает вкладку. Последнюю вкладку закрыть нельзя.
+        /// </summary>
+        public ICommand CloseTabCommand { get; }
+
+        private void AddTab()
+        {
+            var tab = _tabFactory.Create(TabTitlePrefix + NextFreeTabNumber());
+
+            Tabs.Add(tab);
+            SelectedTab = tab;
         }
 
         /// <summary>
-        /// Обратное к IsNormalized, для привязки переключателя «Исходные».
+        /// Наименьший номер, не занятый открытыми вкладками: номера закрытых вкладок используются повторно.
         /// </summary>
-        public bool ShowOriginal
+        private int NextFreeTabNumber()
         {
-            get => !IsNormalized;
-            set => IsNormalized = !value;
+            var usedTitles = Tabs.Select(t => t.Title).ToHashSet();
+
+            int number = 1;
+            while (usedTitles.Contains(TabTitlePrefix + number))
+                number++;
+
+            return number;
         }
 
-        public INormalizationMethod SelectedNormalizationMethod
+        private void CloseTab(ChartTabViewModel tab)
         {
-            get => _selectedNormalizationMethod;
-            set
-            {
-                if (value == null || !SetField(ref _selectedNormalizationMethod, value)) return;
-                if (IsNormalized) ApplyDisplayMode();
-            }
-        }
+            int index = Tabs.IndexOf(tab);
+            if (index < 0 || Tabs.Count <= 1) return;
 
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => SetField(ref _statusMessage, value);
-        }
+            // После закрытия выбранной вкладки выбирается соседняя справа, а если её нет — слева
+            if (tab == SelectedTab)
+                SelectedTab = index + 1 < Tabs.Count ? Tabs[index + 1] : Tabs[index - 1];
 
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set
-            {
-                SetField(ref _isLoading, value);
-                CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        private async Task LoadFileAsync()
-        {
-            string? filePath = _fileDialog.OpenSignalFile();
-            if (filePath == null) return;
-
-            try
-            {
-                IsLoading = true;
-                StatusMessage = "Чтение и парсинг файла...";
-
-                var signals = await _importSignals.ExecuteAsync(filePath);
-
-                StatusMessage = $"Файл «{Path.GetFileName(filePath)}» загружен. Сигналов: {signals.Count}";
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Ошибка при чтении файла: {ex.Message}";
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        private void ClearSignals()
-        {
-            _workspace.Clear();
-            StatusMessage = "Графики удалены";
-        }
-
-        private void OnWorkspaceChanged(object? sender, SignalWorkspaceChangedEventArgs e)
-        {
-            switch (e.Change)
-            {
-                case SignalWorkspaceChange.Added:
-                    foreach (var signal in e.Signals)
-                        Signals.Add(new SignalItemViewModel(signal, _palette.Next()));
-
-                    // Набор изменился — общие характеристики для нормализации тоже
-                    if (IsNormalized) ApplyDisplayMode();
-                    break;
-
-                case SignalWorkspaceChange.Removed:
-                    foreach (var signal in e.Signals)
-                    {
-                        var item = Signals.FirstOrDefault(s => s.Id == signal.Id);
-                        if (item != null) Signals.Remove(item);
-                    }
-
-                    if (IsNormalized) ApplyDisplayMode();
-                    break;
-
-                case SignalWorkspaceChange.Cleared:
-                    Signals.Clear();
-                    _palette.Reset();
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Показывает на графике исходные или нормализованные значения в зависимости от режима.
-        /// Нормализация считается по всем загруженным сигналам, а не только по видимым,
-        /// чтобы скрытие сигнала не меняло масштаб остальных.
-        /// </summary>
-        private void ApplyDisplayMode()
-        {
-            if (!IsNormalized)
-            {
-                foreach (var item in Signals)
-                    item.ShowOriginal();
-                return;
-            }
-
-            var normalized = SelectedNormalizationMethod.Normalize(_workspace.Signals);
-
-            foreach (var item in Signals)
-            {
-                if (normalized.TryGetValue(item.Id, out var ys))
-                    item.ShowValues(ys);
-            }
+            Tabs.Remove(tab);
         }
     }
 }

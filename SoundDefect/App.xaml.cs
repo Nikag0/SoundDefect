@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using SoundDefect.Application.Import;
+using SoundDefect.Application.Laser;
 using SoundDefect.Application.Normalization;
-using SoundDefect.Application.Workspace;
 using SoundDefect.Dialogs;
 using SoundDefect.Infrastructure.Parsing;
 using SoundDefect.Infrastructure.Parsing.Formats;
@@ -33,8 +33,9 @@ namespace SoundDefect
         private void ConfigureServices(IServiceCollection services)
         {
             // Application
-            services.AddSingleton<ISignalWorkspace, SignalWorkspace>();
-            services.AddTransient<ImportSignalsFromFile>();
+            // Рабочая область (ISignalWorkspace) и сценарий загрузки создаются отдельно для каждой вкладки
+            // в ChartTabFactory, поэтому здесь не регистрируются.
+            services.AddSingleton<LaserActivityDetector>();
             // Способы нормализации: первый зарегистрированный выбран по умолчанию
             services.AddSingleton<INormalizationMethod, GlobalMinMaxNormalization>();
             services.AddSingleton<INormalizationMethod, PerSignalMinMaxNormalization>();
@@ -46,6 +47,8 @@ namespace SoundDefect
 
             // Presentation
             services.AddSingleton<IFileDialogService, FileDialogService>();
+            services.AddSingleton<IConfirmationDialogService, ConfirmationDialogService>();
+            services.AddSingleton<ChartTabFactory>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<MainWindow>();
         }

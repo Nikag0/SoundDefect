@@ -1,0 +1,313 @@
+<UserControl x:Class="SoundDefect.View.ChartTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Все поля ввода вкладки применяют значение по Enter (а не только при уходе фокуса) -->
+        <Style TargetType="TextBox">
+            <EventSetter Event="KeyDown" Handler="OnTextBoxKeyDown"/>
+        </Style>
+
+        <Style x:Key="RangeBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260" MinWidth="120"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Background="#FAFAFA">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Верхняя часть: список сигналов -->
+            <DockPanel Grid.Row="0" Margin="10">
+                <TextBlock Text="Сигналы:" DockPanel.Dock="Top" FontWeight="Bold" Margin="0,0,0,8" FontSize="13"/>
+
+                <!-- Кнопки управления списком: в одну строку, поровну делят ширину списка -->
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0"
+                        Content="Добавить"
+                        Command="{Binding LoadFileCommand}"
+                        Padding="6,3"
+                        FontSize="12"
+                        Cursor="Hand"
+                        ToolTip="Загрузить сигналы из файла"/>
+
+                    <Button Grid.Column="2"
+                        Content="Удалить всё"
+                        Command="{Binding ClearCommand}"
+                        Padding="6,3"
+                        FontSize="12"
+                        Cursor="Hand"
+                        ToolTip="Удалить все сигналы с этой вкладки"/>
+                </Grid>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Signals}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Прозрачный фон нужен, чтобы наведение срабатывало по всей строке, а не только по элементам -->
+                                <StackPanel x:Name="SignalRow" Orientation="Horizontal" Margin="0,4" VerticalAlignment="Center" Background="Transparent">
+
+                                    <!-- Кнопка удаления: скрыта (но занимает место, чтобы строка не сдвигалась), видна при наведении на строку -->
+                                    <Button x:Name="RemoveButton"
+                                        Content="✕"
+                                        Visibility="Hidden"
+                                        Width="18" Height="18"
+                                        Padding="0"
+                                        Margin="0,0,6,0"
+                                        FontSize="11"
+                                        Cursor="Hand"
+                                        VerticalAlignment="Center"
+                                        ToolTip="Удалить сигнал"
+                                        Command="{Binding DataContext.RemoveSignalCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"/>
+
+                                    <!-- Цветной маркер сигнала -->
+                                    <Border Width="12" Height="12"
+                                        CornerRadius="3"
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
+                                        Background="{Binding Brush}"
+                                        BorderBrush="#CCCCCC"
+                                        BorderThickness="0.5"/>
+
+                                    <!-- Чекбокс, привязанный к состоянию видимости -->
+                                    <CheckBox IsChecked="{Binding IsVisible}"
+                                        Content="{Binding Name}"
+                                        FontSize="13"
+                                        Cursor="Hand"
+                                        VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="SignalRow" Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="RemoveButton" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+
+            <!-- Лазер: один на вкладку, по нему определяются интервалы работы -->
+            <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Лазер:" Style="{StaticResource SectionHeader}"/>
+
+                    <!-- Пока лазер не загружен — только кнопка добавления -->
+                    <Button Content="Добавить лазер"
+                            Command="{Binding LoadLaserCommand}"
+                            ToolTip="Загрузить файл лазера">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SmallButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasLaser}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <StackPanel Visibility="{Binding HasLaser, Converter={StaticResource BoolToVisibility}}">
+                        <!-- Лазер как сигнал: кривую можно показать на графике -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="12" Height="12"
+                                    CornerRadius="3"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    Background="{Binding Laser.Brush}"
+                                    BorderBrush="#CCCCCC"
+                                    BorderThickness="0.5"/>
+                            <CheckBox IsChecked="{Binding Laser.IsVisible}"
+                                      Content="{Binding Laser.Name}"
+                                      FontSize="13"
+                                      Cursor="Hand"
+                                      VerticalAlignment="Center"
+                                      ToolTip="Показать кривую лазера на графике"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Content="Заменить"
+                                    Style="{StaticResource SmallButton}"
+                                    Command="{Binding LoadLaserCommand}"
+                                    ToolTip="Загрузить другой файл лазера"/>
+                            <Button Grid.Column="2" Content="Убрать"
+                                    Style="{StaticResource SmallButton}"
+                                    Command="{Binding RemoveLaserCommand}"
+                                    ToolTip="Убрать лазер с этой вкладки"/>
+                        </Grid>
+
+                        <!-- Настройки распознавания: применяются при уходе фокуса из поля -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Порог" FontSize="12" VerticalAlignment="Center"
+                                       ToolTip="Значение лазера, начиная с которого он считается включённым"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,2"
+                                     Text="{Binding LaserThreshold}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Мин. длительность, с" FontSize="12" VerticalAlignment="Center"
+                                       ToolTip="Включения и выключения короче этого времени считаются скачками напряжения и отбрасываются"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"
+                                     Text="{Binding LaserMinDuration}"/>
+                        </Grid>
+
+                        <TextBlock Text="{Binding LaserSummary}"
+                                   Margin="0,6,0,0"
+                                   FontSize="11"
+                                   Foreground="#777777"
+                                   TextWrapping="Wrap"/>
+
+                        <!-- Фильтр по работе лазера: часть группы «Лазер», виден после загрузки лазера.
+                             Свой StackPanel, чтобы переключатели не объединились в группу с переключателями нормализации -->
+                        <StackPanel Margin="0,10,0,0">
+                            <TextBlock Text="Показывать участки:" FontSize="12" Margin="0,0,0,4"/>
+
+                            <RadioButton Content="Все данные"
+                                         IsChecked="{Binding ShowAllData}"
+                                         FontSize="13" Margin="0,2"/>
+                            <RadioButton Content="Лазер включён"
+                                         IsChecked="{Binding ShowLaserOn}"
+                                         FontSize="13" Margin="0,2"/>
+                            <RadioButton Content="Лазер выключен"
+                                         IsChecked="{Binding ShowLaserOff}"
+                                         FontSize="13" Margin="0,2"/>
+
+                            <CheckBox Content="Подсвечивать интервалы"
+                                      IsChecked="{Binding HighlightLaserIntervals}"
+                                      FontSize="13" Margin="0,6,0,0"
+                                      Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Нижняя часть: исходные или нормализованные сигналы и способ нормализации -->
+            <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Нормализация:" Style="{StaticResource SectionHeader}"/>
+
+                    <!-- GroupName не задаём: внутри одной вкладки переключатели и так образуют группу,
+                         а общее имя связало бы переключатели всех вкладок между собой -->
+                    <RadioButton Content="Исходные сигналы"
+                                 IsChecked="{Binding ShowOriginal}"
+                                 FontSize="13" Margin="0,2"/>
+
+                    <RadioButton Content="Нормализованные"
+                                 IsChecked="{Binding IsNormalized}"
+                                 FontSize="13" Margin="0,2"/>
+
+                    <TextBlock Text="Способ нормализации:" Margin="0,10,0,4" FontSize="12"
+                               IsEnabled="{Binding IsNormalized}"/>
+
+                    <ComboBox ItemsSource="{Binding NormalizationMethods}"
+                              SelectedItem="{Binding SelectedNormalizationMethod}"
+                              DisplayMemberPath="Name"
+                              IsEnabled="{Binding IsNormalized}"
+                              ToolTip="{Binding SelectedNormalizationMethod.Description}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#E0E0E0"/>
+
+        <!-- Полоса масштаба, график и под ним полоса лазера с общей осью X -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Масштаб: границы осей и их фиксация. Зафиксированная ось не меняется при смене данных на графике -->
+            <Border Grid.Row="0" Background="#F3F3F3" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="8,4">
+                <WrapPanel DataContext="{Binding Scale}" Orientation="Horizontal">
+                    <TextBlock Text="Масштаб:" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                    <CheckBox Content="Фиксировать X" IsChecked="{Binding IsXLocked}"
+                              FontSize="12" VerticalAlignment="Center" Cursor="Hand"
+                              ToolTip="Ось X не будет меняться при смене участков лазера, нормализации и загрузке сигналов"/>
+                    <TextBlock Text="от" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    <TextBox Style="{StaticResource RangeBox}" Text="{Binding XMin, StringFormat={}{0:0.###}}"/>
+                    <TextBlock Text="до" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBox Style="{StaticResource RangeBox}" Text="{Binding XMax, StringFormat={}{0:0.###}}"/>
+
+                    <CheckBox Content="Фиксировать Y" IsChecked="{Binding IsYLocked}"
+                              FontSize="12" VerticalAlignment="Center" Cursor="Hand" Margin="16,0,0,0"
+                              ToolTip="Ось Y не будет меняться при смене участков лазера, нормализации и загрузке сигналов"/>
+                    <TextBlock Text="от" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                    <TextBox Style="{StaticResource RangeBox}" Text="{Binding YMin, StringFormat={}{0:0.###}}"/>
+                    <TextBlock Text="до" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBox Style="{StaticResource RangeBox}" Text="{Binding YMax, StringFormat={}{0:0.###}}"/>
+
+                    <Button Content="Вписать всё" Command="{Binding FitCommand}"
+                            Style="{StaticResource SmallButton}" Margin="16,0,0,0"
+                            ToolTip="Подогнать масштаб так, чтобы были видны все данные"/>
+                </WrapPanel>
+            </Border>
+
+            <ScottPlot:WpfPlot x:Name="Plot" Grid.Row="1" Margin="5,5,5,0"/>
+
+            <Grid Grid.Row="2" Height="30" Margin="5,0,5,5"
+                  Visibility="{Binding HasLaser, Converter={StaticResource BoolToVisibility}}">
+                <ScottPlot:WpfPlot x:Name="LaserStrip"/>
+                <TextBlock Text="Лазер"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"
+                           FontSize="12"
+                           Foreground="#555555"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -3,10 +3,74 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
-        xmlns:local="clr-namespace:SoundDefect"
+        xmlns:view="clr-namespace:SoundDefect.View"
         mc:Ignorable="d"
         Title="SoundDefect" Height="600" Width="1100">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- Заголовок вкладки: название и кнопка закрытия, выбранная вкладка светлее остальных -->
+        <Style x:Key="TabHeaderStyle" TargetType="ListBoxItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="TabBorder"
+                                Background="#D3D7DD"
+                                CornerRadius="8,8,0,0"
+                                Margin="0,0,2,0"
+                                Padding="12,5,5,5"
+                                MinWidth="120" MaxWidth="220"
+                                Cursor="Hand">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right"
+                                        Content="✕"
+                                        Width="18" Height="18"
+                                        Margin="8,0,0,0"
+                                        Padding="0"
+                                        FontSize="10"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        VerticalAlignment="Center"
+                                        ToolTip="Закрыть вкладку"
+                                        Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <!-- Последнюю вкладку закрыть нельзя: кнопку прячем, но место оставляем -->
+                                        <Style TargetType="Button">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Visibility" Value="Hidden"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <TextBlock Text="{Binding Title}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center"
+                                           FontSize="13"/>
+                            </DockPanel>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#E4E7EB"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#FAFAFA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,102 +78,55 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#F3F3F3">
-            <Button Content="📁 Добавить график" 
-            Command="{Binding LoadFileCommand}" 
-            Padding="12,6" 
-            FontSize="14" 
-            Cursor="Hand"
-            FontWeight="SemiBold"/>
+        <!-- Полоса вкладок: заголовки и кнопка «+» сразу за последней вкладкой -->
+        <Border Grid.Row="0" Background="#BFC5CC" Padding="6,6,6,0">
+            <StackPanel Orientation="Horizontal">
+                <ListBox ItemsSource="{Binding Tabs}"
+                         SelectedItem="{Binding SelectedTab}"
+                         ItemContainerStyle="{StaticResource TabHeaderStyle}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
 
-            <Button Content="Очистить графики" 
-            Command="{Binding ClearCommand}" 
-            Padding="12,6" 
-            FontSize="14" 
-            Cursor="Hand"
-            FontWeight="SemiBold"/>
-        </StackPanel>
+                <Button Content="+"
+                        Command="{Binding AddTabCommand}"
+                        Width="28" Height="28"
+                        Margin="4,0,0,2"
+                        Padding="0"
+                        FontSize="16"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        VerticalAlignment="Center"
+                        Cursor="Hand"
+                        ToolTip="Новая вкладка"/>
+            </StackPanel>
+        </Border>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260" MinWidth="120"/>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Grid Grid.Column="0" Background="#FAFAFA">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Верхняя часть: список сигналов -->
-                <DockPanel Grid.Row="0" Margin="10">
-                    <TextBlock Text="Сигналы:" DockPanel.Dock="Top" FontWeight="Bold" Margin="0,0,0,10" FontSize="13"/>
-
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Signals}" VirtualizingStackPanel.IsVirtualizing="True" >
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,4" VerticalAlignment="Center">
-
-                                        <!-- Цветной маркер сигнала -->
-                                        <Border Width="12" Height="12"
-                                            CornerRadius="3"
-                                            Margin="0,0,8,0"
-                                            VerticalAlignment="Center"
-                                            Background="{Binding Brush}"
-                                            BorderBrush="#CCCCCC" 
-                                            BorderThickness="0.5"/>
-
-                                        <!-- Чекбокс, привязанный к состоянию видимости -->
-                                        <CheckBox IsChecked="{Binding IsVisible}" 
-                                            Content="{Binding Name}" 
-                                            FontSize="13" 
-                                            Cursor="Hand"
-                                            VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-
-                <!-- Нижняя часть: режим отображения и способ нормализации -->
-                <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10">
-                    <StackPanel>
-                        <TextBlock Text="Отображение:" FontWeight="Bold" Margin="0,0,0,8" FontSize="13"/>
-
-                        <RadioButton Content="Исходные сигналы"
-                                     GroupName="DisplayMode"
-                                     IsChecked="{Binding ShowOriginal}"
-                                     FontSize="13" Margin="0,2"/>
-
-                        <RadioButton Content="Нормализованные"
-                                     GroupName="DisplayMode"
-                                     IsChecked="{Binding IsNormalized}"
-                                     FontSize="13" Margin="0,2"/>
-
-                        <TextBlock Text="Способ нормализации:" Margin="0,10,0,4" FontSize="12"
-                                   IsEnabled="{Binding IsNormalized}"/>
-
-                        <ComboBox ItemsSource="{Binding NormalizationMethods}"
-                                  SelectedItem="{Binding SelectedNormalizationMethod}"
-                                  DisplayMemberPath="Name"
-                                  IsEnabled="{Binding IsNormalized}"
-                                  ToolTip="{Binding SelectedNormalizationMethod.Description}"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#E0E0E0"/>
-
-            <ScottPlot:WpfPlot Name="MainPlot" Grid.Column="2" Margin="5"/>
-        </Grid>
+        <!-- Содержимое вкладок: у каждой своё представление со своим графиком, видна только выбранная.
+             Представления не пересоздаются при переключении, поэтому график сохраняет масштаб и состояние. -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Tabs}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <view:ChartTabView Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibility}}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <StatusBar Grid.Row="2" Background="#EAEAEA">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#333333"/>
+                <TextBlock Text="{Binding SelectedTab.StatusMessage}" FontSize="12" Foreground="#333333"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

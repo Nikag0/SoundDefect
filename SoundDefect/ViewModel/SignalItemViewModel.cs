@@ -8,40 +8,42 @@ namespace SoundDefect.ViewModel
     /// </summary>
     public class SignalItemViewModel : ViewModelBase
     {
-        private readonly double[] _originalYs;
-        private double[] _ys;
-        private bool _isVisible = true;
+        private IReadOnlyList<SignalSegment> _segments;
+        private bool _isVisible;
 
         public SignalId Id { get; }
         public string Name { get; }
         public Color Color { get; }
         public Brush Brush { get; }
 
-        /// <summary>
-        /// Точки, которые рисуются на графике: исходные или нормализованные значения Y.
-        /// Изменение Ys отслеживает отрисовка и перестраивает кривую.
-        /// </summary>
-        public double[] Xs { get; }
+        /// <summary>Исходные точки сигнала, из которых строятся отрезки для графика.</summary>
+        public double[] OriginalXs { get; }
+        public double[] OriginalYs { get; }
 
-        public double[] Ys
+        /// <summary>
+        /// Что рисуется на графике: один отрезок со всеми точками или несколько, если часть точек скрыта фильтром.
+        /// Значения Y — исходные или нормализованные. Изменение отслеживает отрисовка и перестраивает кривую.
+        /// </summary>
+        public IReadOnlyList<SignalSegment> Segments
         {
-            get => _ys;
-            private set => SetField(ref _ys, value);
+            get => _segments;
+            private set => SetField(ref _segments, value);
         }
 
-        public SignalItemViewModel(Signal signal, Color color)
+        public SignalItemViewModel(Signal signal, Color color, bool isVisible = true)
         {
             Id = signal.Id;
             Name = signal.Name;
             Color = color;
+            _isVisible = isVisible;
 
             var brush = new SolidColorBrush(color);
             brush.Freeze(); // Оптимизация WPF для неизменяемых ресурсов
             Brush = brush;
 
-            Xs = signal.Xs.ToArray();
-            _originalYs = signal.Ys.ToArray();
-            _ys = _originalYs;
+            OriginalXs = signal.Xs.ToArray();
+            OriginalYs = signal.Ys.ToArray();
+            _segments = new[] { new SignalSegment(OriginalXs, OriginalYs) };
         }
 
         public bool IsVisible
@@ -50,14 +52,10 @@ namespace SoundDefect.ViewModel
             set => SetField(ref _isVisible, value);
         }
 
-        public void ShowOriginal() => Ys = _originalYs;
-
-        public void ShowValues(double[] ys)
+        public void ShowSegments(IReadOnlyList<SignalSegment> segments)
         {
-            if (ys.Length != _originalYs.Length)
-                throw new ArgumentException("Количество значений должно совпадать с количеством точек сигнала.", nameof(ys));
-
-            Ys = ys;
+            ArgumentNullException.ThrowIfNull(segments);
+            Segments = segments;
         }
     }
 }
